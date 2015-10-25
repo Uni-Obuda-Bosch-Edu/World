@@ -1,27 +1,19 @@
 package World;
+import Common.Point2D;
+import Interfaces.I2DPoint;
+import Interfaces.IWorldObject;
 
-public class WorldObj {
-	public static enum Type{Sign,Lane, Misc};
-	public static enum Sign{None,
-		Direction_Forward, Direction_Left, Direction_Right, Direction_ForwardLeft, Direction_ForwardRight, Direction_RoundAbout,
-		Parking_Left, Parking_Right, 
-		Priority_Yield, Priority_Stop, Priority_Highway,
-		Speed_10, Speed_20, Speed_40, Speed_50, Speed_70, Speed_90, Speed_100};
-	public static enum Lane{None,
-		Advanced_CrossRoads, Advanced_Rotary, Advanced_JunctionLeft, Advanced_JunctionRight,
-		Simple_45Left, Simple_45Right, Simple_65Left, Simple_65Right, Simple_90Left, Simple_90Right, Simple_Straight};
-	public static enum Misc{ None,
-		CrossWalk, Parking0, Parking90, Parking_Bollard, Man, Tree};
+public class WorldObj implements IWorldObject {
 	private int ID;
 	private String Name;
-	private Type Type;
-	private Sign Sign;
-	private Lane Lane;
-	private Misc Misc;
-	private double[] Pos;
+	private WorldObjectTypes.Type Type;
+	private WorldObjectTypes.Sign Sign;
+	private WorldObjectTypes.Lane Lane;
+	private WorldObjectTypes.Misc Misc;
+	private Point2D Pos;
 	private double[][] Transform;
 	
-	public WorldObj(int id,String name, Type type ,Sign sign,Lane lane, Misc misc, double[] pos,double[][]transform)
+	public WorldObj(int id,String name, WorldObjectTypes.Type type ,WorldObjectTypes.Sign sign,WorldObjectTypes.Lane lane, WorldObjectTypes.Misc misc, double[] pos,double[][]transform)
 	{
 		
 		Transform= new double[2][2];
@@ -32,58 +24,56 @@ public class WorldObj {
 		Lane=lane;
 		Misc=misc;
 		Transform=transform;
-		pos[0]+=40;
-		pos[1]+=40;
-		Pos=Transform(pos,Transform);
+		Pos=new Point2D(pos[0]+40,pos[1]+40);
+		Pos=Transform(Pos,Transform);
 	}
 
-	private double[] Transform(double[] pos,double[][] T)
+	private Point2D Transform(Point2D pos,double[][] T)
 	{
-		double[] res=new double[2];
-		res[0]=pos[0]*T[0][0]+pos[1]*T[1][0];
-		res[1]=pos[0]*T[0][1]+pos[1]*T[1][1];
-		return res;
+		return new Point2D(pos.getX()*T[0][0]+pos.getY()*T[1][0],pos.getY()*T[0][1]+pos.getY()*T[1][1]);
 		
 	}
 	
-	int getID() {
+	public int getID() {
 		return ID;
 	}
 	
-	String getName() {
+	
+	
+	public String getName() {
 		return Name;
 	}
 	
-	Type getType() {
+	public WorldObjectTypes.Type getType() {
 		return Type;
 	}
 	
-	Sign getSign()
+	public WorldObjectTypes.Sign getSign()
 	{
 		return Sign;
 	}
 	
-	Misc getMisc()
+	public WorldObjectTypes.Misc getMisc()
 	{
 		return Misc;
 	}
 	
-	Lane getLane()
+	public WorldObjectTypes.Lane getLane()
 	{
 		return Lane;
 	}
 	
-	double getPosX() {
-		return Pos[0];
+	public I2DPoint getPosition()
+	{
+		return Pos;
 	}
 	
-	double getPosY() {
-		return Pos[1];
-	}
-	
-	double[][] getTransform() {
+	public double[][] getTransform() {
 		return Transform;
 	}
+	
+	
+	
 	
 	
 

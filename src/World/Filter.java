@@ -21,49 +21,33 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import World.WorldObj;
+import Interfaces.I2DPoint;
+import Interfaces.IFilter;
+import Interfaces.IWorldObject;
 
-public class Filter {
+public class Filter implements IFilter {
 	
 	private static void print(String str) {
 		System.out.println(str);
 	}
-	public static void Show(List<WorldObj> Objs)
+	
+	private List<IWorldObject> WorldObjects;
+	
+	
+	
+	public List<IWorldObject> GetObjects() //Temporary
 	{
-		for(WorldObj obj:Objs)
-		{
-			print("Id: "+obj.getID());
-			print("Name: "+obj.getName());
-			print("Type: "+obj.getType());
-			switch(obj.getType())
-			{
-				case Misc:
-					print("SubType: "+obj.getMisc());
-					break;
-				case Sign:
-					print("SubType: "+obj.getSign());
-					break;
-				case Lane:
-					print("SubType: "+obj.getLane());
-					break;
-			}			
-			
-			print("Position (X,Y): "+obj.getPosX()+", "+obj.getPosY() );
-			print("Transform (11,12,21,11): "+obj.getTransform()[0][0]+", "+obj.getTransform()[0][1]+", "+obj.getTransform()[1][0]+", "+obj.getTransform()[1][1]);
-			print("\n");
-		}
-	}
-
-	public static void main(String[] args)
-	{
-		
-		Show(Create());
+		return WorldObjects;
 	}
 	
-	
-	
-	public static List<WorldObj> Create()
+	public Filter()
 	{
-		List<WorldObj> WorldObjects=new ArrayList<>();
+		Create();
+	}
+	
+	private void Create()
+	{
+		WorldObjects=new ArrayList<>();
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.showOpenDialog(null);
 		
@@ -140,32 +124,30 @@ public class Filter {
 				}
 				
 				
-				WorldObj.Type Type=GetType(Name);
-				WorldObj.Sign Sign;
-				WorldObj.Lane Lane;
-				WorldObj.Misc Misc;
-				if(Type==WorldObj.Type.Sign)
+				WorldObjectTypes.Type Type=GetType(Name);
+				WorldObjectTypes.Sign Sign;
+				WorldObjectTypes.Lane Lane;
+				WorldObjectTypes.Misc Misc;
+				if(Type==WorldObjectTypes.Type.Sign)
 				{
-					Misc=WorldObj.Misc.None;
-					Lane=WorldObj.Lane.None;
+					Misc=WorldObjectTypes.Misc.None;
+					Lane=WorldObjectTypes.Lane.None;
 					Sign=GetSign(Name);
 				}
-				else if(Type==WorldObj.Type.Lane)
+				else if(Type==WorldObjectTypes.Type.Lane)
 				{
-					Misc=WorldObj.Misc.None;
-					Sign=WorldObj.Sign.None;
+					Misc=WorldObjectTypes.Misc.None;
+					Sign=WorldObjectTypes.Sign.None;
 					Lane=GetLane(Name);
 				}
 				else
 				{
 					Misc=GetMisc(Name);
-					Lane=WorldObj.Lane.None;
-					Sign=WorldObj.Sign.None;
+					Lane=WorldObjectTypes.Lane.None;
+					Sign=WorldObjectTypes.Sign.None;
 				}
 				WorldObjects.add(new WorldObj(ID,Name,Type,Sign,Lane, Misc,Pos,Transform));
 			}
-		
-			//Show(WorldObjects);
 			
 			
 		} catch (ParserConfigurationException e) {
@@ -177,49 +159,47 @@ public class Filter {
 			print("File does not exists, please choose an XML file.");
 		}
 		
-		return WorldObjects;
-		
 	}
 	
-	private static WorldObj.Type GetType(String type)
+	private WorldObjectTypes.Type GetType(String type)
 	{
-		if(type.substring(10,11).compareTo("s")==0)
+		if(type.substring(5,15).compareTo("road_signs")==0)
 		{
-			return WorldObj.Type.Sign;
+			return WorldObjectTypes.Type.Sign;
 		}
-		else if(type.substring(10,11).compareTo("t")==0)
+		else if(type.substring(5,15).compareTo("road_tiles")==0)
 		{
-			return WorldObj.Type.Lane;
+			return WorldObjectTypes.Type.Lane;
 		}
 		else
 		{
-			return WorldObj.Type.Misc;
+			return WorldObjectTypes.Type.Misc;
 		}
 	}
 	
-	private static WorldObj.Misc GetMisc(String name)
+	private WorldObjectTypes.Misc GetMisc(String name)
 	{
 		switch(name.substring(10,name.length()-4))
 		{
 		case "crosswalks/crosswalk_5_stripes":
-			return WorldObj.Misc.CrossWalk;
+			return WorldObjectTypes.Misc.CrossWalk;
 		case "parking/parking_0":
-			return WorldObj.Misc.Parking0;
+			return WorldObjectTypes.Misc.Parking0;
 		case "parking/parking_90":
-			return WorldObj.Misc.Parking90;
+			return WorldObjectTypes.Misc.Parking90;
 		case "parking/parking_bollard":
-			return WorldObj.Misc.Parking_Bollard;
+			return WorldObjectTypes.Misc.Parking_Bollard;
 		case "people/man03":
-			return WorldObj.Misc.Man;
+			return WorldObjectTypes.Misc.Man;
 		case "trees/tree_top_view":
-			return WorldObj.Misc.Tree;
+			return WorldObjectTypes.Misc.Tree;
 			default:
-				return WorldObj.Misc.None;
+				return WorldObjectTypes.Misc.None;
 			
 		}
 	}
 	
-	private static WorldObj.Sign GetSign(String name)
+	private WorldObjectTypes.Sign GetSign(String name)
 	{
 		String type=name.substring(16,18);
 		if(type.compareTo("di")==0)
@@ -228,17 +208,17 @@ public class Filter {
 			switch(x)
 			{
 			case "209-30":
-				return WorldObj.Sign.Direction_Forward;
+				return WorldObjectTypes.Sign.Direction_Forward;
 			case "211-10":
-				return WorldObj.Sign.Direction_Left;
+				return WorldObjectTypes.Sign.Direction_Left;
 			case "211-20":
-				return WorldObj.Sign.Direction_Right;
+				return WorldObjectTypes.Sign.Direction_Right;
 			case "214-10":
-				return WorldObj.Sign.Direction_ForwardLeft;
+				return WorldObjectTypes.Sign.Direction_ForwardLeft;
 			case "214-20":
-				return WorldObj.Sign.Direction_ForwardRight;
+				return WorldObjectTypes.Sign.Direction_ForwardRight;
 			case "215":
-				return WorldObj.Sign.Direction_RoundAbout;
+				return WorldObjectTypes.Sign.Direction_RoundAbout;
 				}
 			}
 			else if(type.compareTo("pa")==0)
@@ -247,9 +227,9 @@ public class Filter {
 				switch(x)
 				{
 				case "314_10":
-					return WorldObj.Sign.Parking_Left;
+					return WorldObjectTypes.Sign.Parking_Left;
 				case "314_20":
-					return WorldObj.Sign.Parking_Right;
+					return WorldObjectTypes.Sign.Parking_Right;
 				}
 			}
 			else if(type.compareTo("pr")==0)
@@ -258,11 +238,11 @@ public class Filter {
 				switch(x)
 				{
 				case "205":
-					return WorldObj.Sign.Priority_Yield;
+					return WorldObjectTypes.Sign.Priority_Yield;
 				case "206":
-					return WorldObj.Sign.Priority_Stop;
+					return WorldObjectTypes.Sign.Priority_Stop;
 				case "306":
-					return WorldObj.Sign.Priority_Highway;
+					return WorldObjectTypes.Sign.Priority_Highway;
 				}
 			}
 			else if(type.compareTo("sp")==0)
@@ -271,28 +251,28 @@ public class Filter {
 				switch(x)
 				{
 				case "274_51":
-					return WorldObj.Sign.Speed_10;
+					return WorldObjectTypes.Sign.Speed_10;
 				case "274_52":
-					return WorldObj.Sign.Speed_20;
+					return WorldObjectTypes.Sign.Speed_20;
 				case "274_54":
-					return WorldObj.Sign.Speed_40;
+					return WorldObjectTypes.Sign.Speed_40;
 				case "274_55":
-					return WorldObj.Sign.Speed_50;
+					return WorldObjectTypes.Sign.Speed_50;
 				case "274_57":
-					return WorldObj.Sign.Speed_70;
+					return WorldObjectTypes.Sign.Speed_70;
 				case "274_59":
-					return WorldObj.Sign.Speed_90;
+					return WorldObjectTypes.Sign.Speed_90;
 				case "274_60":
-					return WorldObj.Sign.Speed_100;
+					return WorldObjectTypes.Sign.Speed_100;
 					
 				}
 			}
-		return WorldObj.Sign.None;
+		return WorldObjectTypes.Sign.None;
 	}
 		
 
 	
-	private static WorldObj.Lane GetLane(String name)
+	private WorldObjectTypes.Lane GetLane(String name)
 	{
 		String type=name.substring(23,24);
 		if(type.compareTo("s")==0)
@@ -301,19 +281,19 @@ public class Filter {
 			switch(x)
 			{
 			case "s":
-				return WorldObj.Lane.Simple_Straight;
+				return WorldObjectTypes.Lane.Simple_Straight;
 			case "45l":
-				return WorldObj.Lane.Simple_45Left;
+				return WorldObjectTypes.Lane.Simple_45Left;
 			case "45r":
-				return WorldObj.Lane.Simple_45Right;
+				return WorldObjectTypes.Lane.Simple_45Right;
 			case "65l":
-				return WorldObj.Lane.Simple_65Left;
+				return WorldObjectTypes.Lane.Simple_65Left;
 			case "65r":
-				return WorldObj.Lane.Simple_65Right;
+				return WorldObjectTypes.Lane.Simple_65Right;
 			case "90l":
-				return WorldObj.Lane.Simple_90Left;
+				return WorldObjectTypes.Lane.Simple_90Left;
 			case "90r":
-				return WorldObj.Lane.Simple_90Right;
+				return WorldObjectTypes.Lane.Simple_90Right;
 			}
 		}
 		else if(type.compareTo("a")==0)
@@ -322,17 +302,24 @@ public class Filter {
 			switch(x)
 			{
 			case "crossroads_2":
-				return WorldObj.Lane.Advanced_CrossRoads;
+				return WorldObjectTypes.Lane.Advanced_CrossRoads;
 			case "rotary":
-				return WorldObj.Lane.Advanced_Rotary;
+				return WorldObjectTypes.Lane.Advanced_Rotary;
 			case "t_junction_l":
-				return WorldObj.Lane.Advanced_JunctionLeft;
+				return WorldObjectTypes.Lane.Advanced_JunctionLeft;
 			case "t_junction_r":
-				return WorldObj.Lane.Advanced_JunctionRight;
+				return WorldObjectTypes.Lane.Advanced_JunctionRight;
 			}
 		}
 		
-		return WorldObj.Lane.None;
+		return WorldObjectTypes.Lane.None;
+	}
+
+
+	@Override
+	public IWorldObject getWorldObjectsByTriangle(I2DPoint a, I2DPoint b, I2DPoint c) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 
