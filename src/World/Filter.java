@@ -34,10 +34,21 @@ public class Filter {
 			print("Id: "+obj.getID());
 			print("Name: "+obj.getName());
 			print("Type: "+obj.getType());
+			switch(obj.getType())
+			{
+				case Misc:
+					print("SubType: "+obj.getMisc());
+					break;
+				case Sign:
+					print("SubType: "+obj.getSign());
+					break;
+				case Lane:
+					print("SubType: "+obj.getLane());
+					break;
+			}			
+			
 			print("Position (X,Y): "+obj.getPosX()+", "+obj.getPosY() );
 			print("Transform (11,12,21,11): "+obj.getTransform()[0][0]+", "+obj.getTransform()[0][1]+", "+obj.getTransform()[1][0]+", "+obj.getTransform()[1][1]);
-			print("ZLevel: "+obj.getZLevel());
-			print("Opacity: "+obj.getOpacity());
 			print("\n");
 		}
 	}
@@ -72,12 +83,8 @@ public class Filter {
 			
 			int ID=0;
 			String Name="";
-			String Type="";
-			double PosX=0;
-			double PosY=0;
+			double[] Pos=new double[2];
 			double[][] Transform=new double[2][2];
-			int ZLevel=0;
-			int Opacity=0;
 			
 			
 
@@ -94,8 +101,8 @@ public class Filter {
 					break;
 					case "name": Name=attributes.item(j).getNodeValue();
 					break;
-					case "type": Type=attributes.item(j).getNodeValue();
-					break;
+					//case "type": Type=attributes.item(j).getNodeValue();
+					//break;
 					default:
 						break;
 					}
@@ -110,21 +117,18 @@ public class Filter {
 						NamedNodeMap childattributes=child.item(j).getAttributes();
 						switch(child.item(j).getNodeName())
 						{
-						case "Position": 
-							PosX=Double.parseDouble(childattributes.item(0).getNodeValue());
-							PosY=Double.parseDouble(childattributes.item(1).getNodeValue());
+						case "Position":
+							Pos=new double[2];
+							Pos[0]=Double.parseDouble(childattributes.item(0).getNodeValue());
+							Pos[1]=Double.parseDouble(childattributes.item(1).getNodeValue());
+							
 							break;
 						case "Transform":
+							Transform=new double[2][2];
 							Transform[0][0]=Double.parseDouble(childattributes.item(0).getNodeValue());
 							Transform[0][1]=Double.parseDouble(childattributes.item(1).getNodeValue());
 							Transform[1][0]=Double.parseDouble(childattributes.item(2).getNodeValue());
 							Transform[1][1]=Double.parseDouble(childattributes.item(3).getNodeValue());
-							break;
-						case "ZLevel":
-							ZLevel=Integer.parseInt(childattributes.item(0).getNodeValue());
-							break;
-						case "Opacity":
-							Opacity=Integer.parseInt(childattributes.item(0).getNodeValue());
 							break;
 							default:
 								break;
@@ -135,8 +139,32 @@ public class Filter {
 					
 				}
 				
-				WorldObjects.add(new WorldObj(ID,Name,Type,PosX,PosY,Transform,ZLevel,Opacity));
+				
+				WorldObj.Type Type=GetType(Name);
+				WorldObj.Sign Sign;
+				WorldObj.Lane Lane;
+				WorldObj.Misc Misc;
+				if(Type==WorldObj.Type.Sign)
+				{
+					Misc=WorldObj.Misc.None;
+					Lane=WorldObj.Lane.None;
+					Sign=GetSign(Name);
+				}
+				else if(Type==WorldObj.Type.Lane)
+				{
+					Misc=WorldObj.Misc.None;
+					Sign=WorldObj.Sign.None;
+					Lane=GetLane(Name);
+				}
+				else
+				{
+					Misc=GetMisc(Name);
+					Lane=WorldObj.Lane.None;
+					Sign=WorldObj.Sign.None;
+				}
+				WorldObjects.add(new WorldObj(ID,Name,Type,Sign,Lane, Misc,Pos,Transform));
 			}
+		
 			//Show(WorldObjects);
 			
 			
@@ -151,6 +179,160 @@ public class Filter {
 		
 		return WorldObjects;
 		
+	}
+	
+	private static WorldObj.Type GetType(String type)
+	{
+		if(type.substring(10,11).compareTo("s")==0)
+		{
+			return WorldObj.Type.Sign;
+		}
+		else if(type.substring(10,11).compareTo("t")==0)
+		{
+			return WorldObj.Type.Lane;
+		}
+		else
+		{
+			return WorldObj.Type.Misc;
+		}
+	}
+	
+	private static WorldObj.Misc GetMisc(String name)
+	{
+		switch(name.substring(10,name.length()-4))
+		{
+		case "crosswalks/crosswalk_5_stripes":
+			return WorldObj.Misc.CrossWalk;
+		case "parking/parking_0":
+			return WorldObj.Misc.Parking0;
+		case "parking/parking_90":
+			return WorldObj.Misc.Parking90;
+		case "parking/parking_bollard":
+			return WorldObj.Misc.Parking_Bollard;
+		case "people/man03":
+			return WorldObj.Misc.Man;
+		case "trees/tree_top_view":
+			return WorldObj.Misc.Tree;
+			default:
+				return WorldObj.Misc.None;
+			
+		}
+	}
+	
+	private static WorldObj.Sign GetSign(String name)
+	{
+		String type=name.substring(16,18);
+		if(type.compareTo("di")==0)
+		{
+			String x=name.substring(26,name.length()-5);
+			switch(x)
+			{
+			case "209-30":
+				return WorldObj.Sign.Direction_Forward;
+			case "211-10":
+				return WorldObj.Sign.Direction_Left;
+			case "211-20":
+				return WorldObj.Sign.Direction_Right;
+			case "214-10":
+				return WorldObj.Sign.Direction_ForwardLeft;
+			case "214-20":
+				return WorldObj.Sign.Direction_ForwardRight;
+			case "215":
+				return WorldObj.Sign.Direction_RoundAbout;
+				}
+			}
+			else if(type.compareTo("pa")==0)
+			{
+				String x=name.substring(24,name.length()-5);
+				switch(x)
+				{
+				case "314_10":
+					return WorldObj.Sign.Parking_Left;
+				case "314_20":
+					return WorldObj.Sign.Parking_Right;
+				}
+			}
+			else if(type.compareTo("pr")==0)
+			{
+				String x=name.substring(25,name.length()-5);
+				switch(x)
+				{
+				case "205":
+					return WorldObj.Sign.Priority_Yield;
+				case "206":
+					return WorldObj.Sign.Priority_Stop;
+				case "306":
+					return WorldObj.Sign.Priority_Highway;
+				}
+			}
+			else if(type.compareTo("sp")==0)
+			{
+				String x=name.substring(22,name.length()-5);
+				switch(x)
+				{
+				case "274_51":
+					return WorldObj.Sign.Speed_10;
+				case "274_52":
+					return WorldObj.Sign.Speed_20;
+				case "274_54":
+					return WorldObj.Sign.Speed_40;
+				case "274_55":
+					return WorldObj.Sign.Speed_50;
+				case "274_57":
+					return WorldObj.Sign.Speed_70;
+				case "274_59":
+					return WorldObj.Sign.Speed_90;
+				case "274_60":
+					return WorldObj.Sign.Speed_100;
+					
+				}
+			}
+		return WorldObj.Sign.None;
+	}
+		
+
+	
+	private static WorldObj.Lane GetLane(String name)
+	{
+		String type=name.substring(23,24);
+		if(type.compareTo("s")==0)
+		{
+			String x=name.substring(39,name.length()-5);
+			switch(x)
+			{
+			case "s":
+				return WorldObj.Lane.Simple_Straight;
+			case "45l":
+				return WorldObj.Lane.Simple_45Left;
+			case "45r":
+				return WorldObj.Lane.Simple_45Right;
+			case "65l":
+				return WorldObj.Lane.Simple_65Left;
+			case "65r":
+				return WorldObj.Lane.Simple_65Right;
+			case "90l":
+				return WorldObj.Lane.Simple_90Left;
+			case "90r":
+				return WorldObj.Lane.Simple_90Right;
+			}
+		}
+		else if(type.compareTo("a")==0)
+		{
+			String x=name.substring(34,name.length()-5);
+			switch(x)
+			{
+			case "crossroads_2":
+				return WorldObj.Lane.Advanced_CrossRoads;
+			case "rotary":
+				return WorldObj.Lane.Advanced_Rotary;
+			case "t_junction_l":
+				return WorldObj.Lane.Advanced_JunctionLeft;
+			case "t_junction_r":
+				return WorldObj.Lane.Advanced_JunctionRight;
+			}
+		}
+		
+		return WorldObj.Lane.None;
 	}
 }
 
