@@ -22,10 +22,12 @@ import org.xml.sax.SAXException;
 
 import World.WorldObj;
 import Interfaces.I2DPoint;
-import Interfaces.IFilter;
+import Interfaces.IUltraSoundFilter;
+import Interfaces.IVideoCameraFilter;
+import Interfaces.IRadarFilter;
 import Interfaces.IWorldObject;
 
-public class Filter implements IFilter {
+public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter{
 	
 	private static void print(String str) {
 		System.out.println(str);
@@ -316,10 +318,23 @@ public class Filter implements IFilter {
 	}
 
 
+
 	@Override
-	public IWorldObject getWorldObjectsByTriangle(I2DPoint a, I2DPoint b, I2DPoint c) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<IWorldObject> getRelevantObjectsForRadar(I2DPoint a, I2DPoint b, I2DPoint c) {
+		// TODO What Radar need?
+		return WorldObjects;
+	}
+
+	@Override
+	public List<IWorldObject> getRelevantObjectsForVideoCamera(I2DPoint a, I2DPoint b, I2DPoint c) {
+		// TODO What VideoCamera need?
+		return WorldObjects;
+	}
+
+	@Override
+	public List<IWorldObject> getRelevantObjectsForUltraSounds(I2DPoint a, I2DPoint b, I2DPoint c) {
+		// TODO What UltraSound need?
+		return WorldObjects;
 	}
 }
 
