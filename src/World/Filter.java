@@ -154,16 +154,17 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 			
 		} catch (ParserConfigurationException e) {
 			print("Incorrect file format, please choose an XML file.");
+			Create();
 		} catch (SAXException e) {
 			print("Bad xml file, please choose another XML file.");
+			Create();
 		} catch (IOException e) {
 			print("File does not exists, please choose an XML file.");
-		} catch (XMLStreamException e){
-			print("Unexpected error, please try again!");
+			Create();
 		} catch (FactoryConfigurationError e){
 			print(e.getMessage());
-		} catch (URISyntaxException e) {
-			print("URI is a malformed URL");
+		} catch (IllegalArgumentException e){
+			print("You didn't choose any file.");
 		}
 		
 	}
