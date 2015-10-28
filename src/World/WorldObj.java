@@ -24,13 +24,13 @@ public class WorldObj implements IWorldObject {
 		Lane=lane;
 		Misc=misc;
 		Transform=transform;
-		Pos=new Point2D(pos[0]+40,pos[1]+40);
-		Pos=Transform(Pos,Transform);
+		Point2D shift=Transform(Transform);
+		Pos=new Point2D(pos[0]+shift.getX(),pos[1]+shift.getY());
 	}
 
-	private Point2D Transform(Point2D pos,double[][] T)
+	private Point2D Transform(double[][] T)
 	{
-		return new Point2D(pos.getX()*T[0][0]+pos.getY()*T[1][0],pos.getY()*T[0][1]+pos.getY()*T[1][1]);
+		return new Point2D(40*T[0][0]+40*T[1][0],40*T[0][1]+40*T[1][1]);
 		
 	}
 	

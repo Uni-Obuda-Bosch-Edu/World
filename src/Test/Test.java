@@ -2,6 +2,7 @@ package Test;
 
 import java.util.List;
 
+import Common.Point2D;
 import World.Filter;
 import Interfaces.IWorldObject;
 
@@ -10,7 +11,8 @@ public class Test {
 	public static void main(String[] args)
 	{
 		Filter f=new Filter();
-		Show(f.GetObjects());
+		//Show(f.GetObjects());
+		Show(f.getRelevantObjectsForRadar(new Point2D(340,340), new Point2D(330,350), new Point2D(350,360)));  //test with rotation.xml
 		
 	}
 	
@@ -42,4 +44,6 @@ public class Test {
 			print("\n");
 		}
 	}
+	
+	
 }

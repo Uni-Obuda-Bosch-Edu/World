@@ -26,6 +26,7 @@ import Interfaces.IUltraSoundFilter;
 import Interfaces.IVideoCameraFilter;
 import Interfaces.IRadarFilter;
 import Interfaces.IWorldObject;
+import Common.Point2D;
 
 public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter{
 	
@@ -156,7 +157,7 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 			print("Incorrect file format, please choose an XML file.");
 			Create();
 		} catch (SAXException e) {
-			print("Bad xml file, please choose another XML file.");
+			print("Wrong xml file, please choose another XML file.");
 			Create();
 		} catch (IOException e) {
 			print("File does not exists, please choose an XML file.");
@@ -324,23 +325,69 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 	}
 
 
+	private double sign (I2DPoint p1, I2DPoint p2, I2DPoint p3) 
+	{ 
+		return (p1.getX() - p3.getX()) * (p2.getY() - p3.getY()) - (p2.getX() - p3.getX()) * (p1.getY() - p3.getY());  
+	}
 
+	Boolean PointInTriangle (I2DPoint pt, I2DPoint v1, I2DPoint v2, I2DPoint v3)
+	{
+		Boolean b1, b2, b3;
+
+		b1 = sign(pt, v1, v2) <= 0.0;
+		b2 = sign(pt, v2, v3) <= 0.0;
+		b3 = sign(pt, v3, v1) <= 0.0;
+
+		return ((b1 == b2) && (b2 == b3));
+	}
+	
+	
 	@Override
 	public List<IWorldObject> getRelevantObjectsForRadar(I2DPoint a, I2DPoint b, I2DPoint c) {
 		// TODO What Radar need?
-		return WorldObjects;
+		List<IWorldObject> found=new ArrayList<IWorldObject>();
+		for(IWorldObject obj : WorldObjects)
+		{
+			if(PointInTriangle(obj.getPosition(),a,b,c))
+			{
+				found.add(obj);
+			}
+		}
+		
+		
+		return found;
 	}
 
 	@Override
 	public List<IWorldObject> getRelevantObjectsForVideoCamera(I2DPoint a, I2DPoint b, I2DPoint c) {
 		// TODO What VideoCamera need?
-		return WorldObjects;
+		List<IWorldObject> found=new ArrayList<IWorldObject>();
+		for(IWorldObject obj : WorldObjects)
+		{
+			if(PointInTriangle(obj.getPosition(),a,b,c))
+			{
+				found.add(obj);
+			}
+		}
+		
+		
+		return found;
 	}
 
 	@Override
-	public List<IWorldObject> getRelevantObjectsForUltraSounds(I2DPoint a, I2DPoint b, I2DPoint c) {
+	public List<IWorldObject> getRelevantObjectsForUltraSound(I2DPoint a, I2DPoint b, I2DPoint c) {
 		// TODO What UltraSound need?
-		return WorldObjects;
+		List<IWorldObject> found=new ArrayList<IWorldObject>();
+		for(IWorldObject obj : WorldObjects)
+		{
+			if(PointInTriangle(obj.getPosition(),a,b,c))
+			{
+				found.add(obj);
+			}
+		}
+		
+		
+		return found;
 	}
 }
 
