@@ -1,6 +1,12 @@
 package Test;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
 
 import Common.Point2D;
 import World.Filter;
@@ -8,18 +14,21 @@ import Interfaces.IWorldObject;
 
 public class Test {
 	
-	public static void main(String[] args)
+	private static final Point2D a=new Point2D(1675,2400);
+	private static final Point2D b=new Point2D(1630,2600);
+	private static final Point2D c=new Point2D(1680,2600);
+	
+	public Test() throws ParserConfigurationException, SAXException, IOException
 	{
-		Filter f=new Filter();
-		//Show(f.GetObjects());
-		Show(f.getRelevantObjectsForRadar(new Point2D(340,340), new Point2D(330,350), new Point2D(350,360)));  //test with rotation.xml
-		
+		URL url = getClass().getResource("road_1.xml");
+		Filter filter=new Filter(url.getPath());
+		Show(filter.getRelevantObjectsForRadar(a, b, c));
 	}
 	
-	private static void print(String str) {
+	private void print(String str) {
 		System.out.println(str);
 	}
-	public static void Show(List<IWorldObject> Objs)
+	public void Show(List<IWorldObject> Objs)
 	{
 		for(IWorldObject obj:Objs)
 		{

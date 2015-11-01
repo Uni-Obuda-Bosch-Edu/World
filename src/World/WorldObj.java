@@ -15,7 +15,6 @@ public class WorldObj implements IWorldObject {
 	
 	public WorldObj(int id,String name, WorldObjectTypes.Type type ,WorldObjectTypes.Sign sign,WorldObjectTypes.Lane lane, WorldObjectTypes.Misc misc, double[] pos,double[][]transform)
 	{
-		
 		Transform= new double[2][2];
 		ID=id;
 		Name=name;

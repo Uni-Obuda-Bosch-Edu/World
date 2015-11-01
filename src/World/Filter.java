@@ -2,7 +2,6 @@ package World;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,8 +10,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLStreamException;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -26,7 +23,6 @@ import Interfaces.IUltraSoundFilter;
 import Interfaces.IVideoCameraFilter;
 import Interfaces.IRadarFilter;
 import Interfaces.IWorldObject;
-import Common.Point2D;
 
 public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter{
 	
@@ -36,9 +32,7 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 	
 	private List<IWorldObject> WorldObjects;
 	
-	
-	
-	public List<IWorldObject> GetObjects() //Temporary
+	public List<IWorldObject> GetObjects()
 	{
 		return WorldObjects;
 	}
@@ -48,111 +42,20 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 		Create();
 	}
 	
+	public Filter(String FileName) throws ParserConfigurationException, SAXException, IOException
+	{
+		Create(FileName);
+	}
+	
 	private void Create()
 	{
 		WorldObjects=new ArrayList<>();
 		JFileChooser fileChooser = new JFileChooser();
 		fileChooser.showOpenDialog(null);
-		
 		try {
 			File file = fileChooser.getSelectedFile();
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db;
-			db = dbf.newDocumentBuilder();
-			Document dom = (Document) db.parse(file);
-			
-			Element scene = dom.getDocumentElement(); 						// Scene node
-			NodeList sceneContent = scene.getElementsByTagName("Objects");
-			Node objectsRoot = sceneContent.item(0); 						// Objects node
-			NodeList objects = objectsRoot.getChildNodes();
-			Node object = null; 											// Object node
-			NamedNodeMap attributes = null;
-			
-			int ID=0;
-			String Name="";
-			double[] Pos=new double[2];
-			double[][] Transform=new double[2][2];
-			
-			
-
-			for (int i = 0; i < objects.getLength(); ++i) {
-				object = objects.item(i);
-				attributes = object.getAttributes();
-				
-				if (attributes == null) // Warn: it finds newline characters as nodes!
-					continue;
-				
-				for (int j = 0; j < attributes.getLength(); ++j) {
-					switch(attributes.item(j).getNodeName()){
-					case "id": ID=Integer.parseInt(attributes.item(j).getNodeValue());
-					break;
-					case "name": Name=attributes.item(j).getNodeValue();
-					break;
-					//case "type": Type=attributes.item(j).getNodeValue();
-					//break;
-					default:
-						break;
-					}
-					
-				}
-				
-				NodeList child = object.getChildNodes();
-				for(int j=0;j<child.getLength();++j)
-				{
-					if(child.item(j).getNodeName().compareTo("#text")!=0)
-					{
-						NamedNodeMap childattributes=child.item(j).getAttributes();
-						switch(child.item(j).getNodeName())
-						{
-						case "Position":
-							Pos=new double[2];
-							Pos[0]=Double.parseDouble(childattributes.item(0).getNodeValue());
-							Pos[1]=Double.parseDouble(childattributes.item(1).getNodeValue());
-							
-							break;
-						case "Transform":
-							Transform=new double[2][2];
-							Transform[0][0]=Double.parseDouble(childattributes.item(0).getNodeValue());
-							Transform[0][1]=Double.parseDouble(childattributes.item(1).getNodeValue());
-							Transform[1][0]=Double.parseDouble(childattributes.item(2).getNodeValue());
-							Transform[1][1]=Double.parseDouble(childattributes.item(3).getNodeValue());
-							break;
-							default:
-								break;
-							
-						}
-					
-					}
-					
-				}
-				
-				
-				WorldObjectTypes.Type Type=GetType(Name);
-				WorldObjectTypes.Sign Sign;
-				WorldObjectTypes.Lane Lane;
-				WorldObjectTypes.Misc Misc;
-				if(Type==WorldObjectTypes.Type.Sign)
-				{
-					Misc=WorldObjectTypes.Misc.None;
-					Lane=WorldObjectTypes.Lane.None;
-					Sign=GetSign(Name);
-				}
-				else if(Type==WorldObjectTypes.Type.Lane)
-				{
-					Misc=WorldObjectTypes.Misc.None;
-					Sign=WorldObjectTypes.Sign.None;
-					Lane=GetLane(Name);
-				}
-				else
-				{
-					Misc=GetMisc(Name);
-					Lane=WorldObjectTypes.Lane.None;
-					Sign=WorldObjectTypes.Sign.None;
-				}
-				WorldObjects.add(new WorldObj(ID,Name,Type,Sign,Lane, Misc,Pos,Transform));
-			}
-			
-			
+			NodeList objects = CreateNodes(file);
+			getObjectsFromNodes(objects);
 		} catch (ParserConfigurationException e) {
 			print("Incorrect file format, please choose an XML file.");
 			Create();
@@ -167,7 +70,108 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 		} catch (IllegalArgumentException e){
 			print("You didn't choose any file.");
 		}
+	}
+	
+	private void Create(String fileName) throws ParserConfigurationException, SAXException, IOException
+	{
+		WorldObjects=new ArrayList<>();
+		File file=new File(fileName);
+		NodeList objects = CreateNodes(file);
+		getObjectsFromNodes(objects);
+	}
+
+	private NodeList CreateNodes(File file) throws ParserConfigurationException, SAXException, IOException {
+		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		DocumentBuilder db;
+		db = dbf.newDocumentBuilder();
+		Document dom = (Document) db.parse(file);
 		
+		Element scene = dom.getDocumentElement();
+		NodeList sceneContent = scene.getElementsByTagName("Objects");
+		Node objectsRoot = sceneContent.item(0); 
+		NodeList objects = objectsRoot.getChildNodes();
+		return objects;
+	}
+
+	private void getObjectsFromNodes(NodeList objects) {
+		Node object;
+		NamedNodeMap attributes;
+		int ID=0;
+		String Name="";
+		double[] Pos=new double[2];
+		double[][] Transform=new double[2][2];
+		WorldObjectTypes.Type Type;
+		WorldObjectTypes.Sign Sign;
+		WorldObjectTypes.Lane Lane;
+		WorldObjectTypes.Misc Misc;
+		
+		for (int i = 0; i < objects.getLength(); ++i) {
+			object = objects.item(i);
+			attributes = object.getAttributes();
+			
+			if (attributes == null) // Warn: it finds newline characters as nodes!
+				continue;
+			
+			for (int j = 0; j < attributes.getLength(); ++j) {
+				switch(attributes.item(j).getNodeName()){
+				case "id": ID=Integer.parseInt(attributes.item(j).getNodeValue());
+				break;
+				case "name": Name=attributes.item(j).getNodeValue();
+				break;
+				default:
+					break;
+				}
+			}
+			
+			NodeList child = object.getChildNodes();
+			for(int j=0;j<child.getLength();++j)
+			{
+				if(child.item(j).getNodeName().compareTo("#text")!=0)
+				{
+					NamedNodeMap childattributes=child.item(j).getAttributes();
+					switch(child.item(j).getNodeName())
+					{
+					case "Position":
+						Pos=new double[2];
+						Pos[0]=Double.parseDouble(childattributes.item(0).getNodeValue());
+						Pos[1]=Double.parseDouble(childattributes.item(1).getNodeValue());
+						
+						break;
+					case "Transform":
+						Transform=new double[2][2];
+						Transform[0][0]=Double.parseDouble(childattributes.item(0).getNodeValue());
+						Transform[0][1]=Double.parseDouble(childattributes.item(1).getNodeValue());
+						Transform[1][0]=Double.parseDouble(childattributes.item(2).getNodeValue());
+						Transform[1][1]=Double.parseDouble(childattributes.item(3).getNodeValue());
+						break;
+						default:
+							break;
+						
+					}
+				}	
+			}
+			Type=GetType(Name);
+			if(Type==WorldObjectTypes.Type.Sign)
+			{
+				Misc=WorldObjectTypes.Misc.None;
+				Lane=WorldObjectTypes.Lane.None;
+				Sign=GetSign(Name);
+			}
+			else if(Type==WorldObjectTypes.Type.Lane)
+			{
+				Misc=WorldObjectTypes.Misc.None;
+				Sign=WorldObjectTypes.Sign.None;
+				Lane=GetLane(Name);
+			}
+			else
+			{
+				Misc=GetMisc(Name);
+				Lane=WorldObjectTypes.Lane.None;
+				Sign=WorldObjectTypes.Sign.None;
+			}
+			
+			WorldObjects.add(new WorldObj(ID,Name,Type,Sign,Lane, Misc,Pos,Transform));
+		}
 	}
 	
 	private WorldObjectTypes.Type GetType(String type)
@@ -280,7 +284,6 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 	}
 		
 
-	
 	private WorldObjectTypes.Lane GetLane(String name)
 	{
 		String type=name.substring(23,24);
@@ -330,7 +333,7 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 		return (p1.getX() - p3.getX()) * (p2.getY() - p3.getY()) - (p2.getX() - p3.getX()) * (p1.getY() - p3.getY());  
 	}
 
-	Boolean PointInTriangle (I2DPoint pt, I2DPoint v1, I2DPoint v2, I2DPoint v3)
+	private Boolean PointInTriangle (I2DPoint pt, I2DPoint v1, I2DPoint v2, I2DPoint v3)
 	{
 		Boolean b1, b2, b3;
 
@@ -342,9 +345,7 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 	}
 	
 	
-	@Override
-	public List<IWorldObject> getRelevantObjectsForRadar(I2DPoint a, I2DPoint b, I2DPoint c) {
-		// TODO What Radar need?
+	private List<IWorldObject> getObjectsByTriangle(I2DPoint a, I2DPoint b, I2DPoint c) {
 		List<IWorldObject> found=new ArrayList<IWorldObject>();
 		for(IWorldObject obj : WorldObjects)
 		{
@@ -357,37 +358,21 @@ public class Filter implements IUltraSoundFilter,IVideoCameraFilter,IRadarFilter
 		
 		return found;
 	}
+	
+	@Override
+	public List<IWorldObject> getRelevantObjectsForRadar(I2DPoint a, I2DPoint b, I2DPoint c) {
+		return getObjectsByTriangle(a, b, c);
+	}
+
 
 	@Override
 	public List<IWorldObject> getRelevantObjectsForVideoCamera(I2DPoint a, I2DPoint b, I2DPoint c) {
-		// TODO What VideoCamera need?
-		List<IWorldObject> found=new ArrayList<IWorldObject>();
-		for(IWorldObject obj : WorldObjects)
-		{
-			if(PointInTriangle(obj.getPosition(),a,b,c))
-			{
-				found.add(obj);
-			}
-		}
-		
-		
-		return found;
+		return getObjectsByTriangle(a, b, c);
 	}
 
 	@Override
 	public List<IWorldObject> getRelevantObjectsForUltraSound(I2DPoint a, I2DPoint b, I2DPoint c) {
-		// TODO What UltraSound need?
-		List<IWorldObject> found=new ArrayList<IWorldObject>();
-		for(IWorldObject obj : WorldObjects)
-		{
-			if(PointInTriangle(obj.getPosition(),a,b,c))
-			{
-				found.add(obj);
-			}
-		}
-		
-		
-		return found;
+		return getObjectsByTriangle(a, b, c);
 	}
 }
 
